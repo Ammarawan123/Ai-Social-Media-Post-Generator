@@ -1,0 +1,61 @@
+from flask import Flask, request, jsonify, render_template, send_from_directory
+from text_generator import generate_text
+from image_generator import generate_image
+import os
+
+app = Flask(__name__)
+
+# Configure the path for the generated_content folder inside the virtual environment
+IMAGE_FOLDER = os.path.join(os.path.dirname(__file__), "generated_content")
+app.config['IMAGE_FOLDER'] = IMAGE_FOLDER
+
+# Ensure the generated_content directory exists
+os.makedirs(IMAGE_FOLDER, exist_ok=True)
+
+@app.route('/')
+def home():
+    return render_template('index.html')
+
+@app.route('/generate', methods=['POST'])
+def generate():
+    try:
+        data = request.json
+        prompt = data.get('prompt')
+
+        if not prompt:
+            return jsonify({"error": "Please provide a prompt."}), 400
+
+        # Generate post content
+        post_content = generate_text(prompt)
+        if not post_content:
+            return jsonify({"error": "Post content generation failed."}), 500
+
+        # Generate image
+        image_filename = generate_image(prompt)
+        if not image_filename:
+            return jsonify({"error": "Image generation failed."}), 500
+
+        # Generate hashtags and caption
+        hashtags = generate_text(f"Generate hashtags for: {prompt}")
+        caption = generate_text(f"Generate a caption for: {prompt}")
+
+        # Construct the correct URL for the generated image
+        image_url = f"/generated_content/{image_filename}"
+
+        return jsonify({
+            "message": "Post generated successfully.",
+            "post_content": post_content,
+            "hashtags": hashtags,
+            "caption": caption,
+            "image_url": image_url  # Correctly constructed URL
+        })
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/generated_content/<filename>')
+def serve_image(filename):
+    return send_from_directory(app.config['IMAGE_FOLDER'], filename)
+
+if __name__ == "__main__":
+    app.run(debug=True)
