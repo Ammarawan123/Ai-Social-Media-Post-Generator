@@ -45,7 +45,7 @@ def main():
             print(f"❌ Error: {e}")
 
 if __name__ == "__main__":
-    if len(sys.argv) > 1 and sys.argv[1] == "run":
+    if len(sys.argv) > 1 and (sys.argv[1] == "run" or sys.argv[1] == "deploy"):
         main()
     else:
-        print("⚠️ This script is designed to be used interactively. Use 'python script.py run' to start.")
+        print("⚠️ This script is designed to be used interactively. Use 'python script.py run' or 'python script.py deploy' to start.")
