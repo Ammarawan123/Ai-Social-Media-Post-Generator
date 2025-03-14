@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify, render_template, send_from_directory
+import os
 from text_generator import generate_text
 from image_generator import generate_image
-import os
 
 app = Flask(__name__)
 
@@ -26,21 +26,21 @@ def generate():
             return jsonify({"error": "Please provide a prompt."}), 400
 
         # Generate post content
-        post_content = generate_text(prompt)
+        post_content = generate_text(prompt) if callable(generate_text) else None
         if not post_content:
             return jsonify({"error": "Post content generation failed."}), 500
 
         # Generate image
-        image_filename = generate_image(prompt)
+        image_filename = generate_image(prompt) if callable(generate_image) else None
         if not image_filename:
             return jsonify({"error": "Image generation failed."}), 500
 
         # Generate hashtags and caption
-        hashtags = generate_text(f"Generate hashtags for: {prompt}")
-        caption = generate_text(f"Generate a caption for: {prompt}")
+        hashtags = generate_text(f"Generate hashtags for: {prompt}") if callable(generate_text) else ""
+        caption = generate_text(f"Generate a caption for: {prompt}") if callable(generate_text) else ""
 
         # Construct the correct URL for the generated image
-        image_url = f"/generated_content/{image_filename}"
+        image_url = f"{request.host_url}generated_content/{image_filename}"
 
         return jsonify({
             "message": "Post generated successfully.",
@@ -49,7 +49,6 @@ def generate():
             "caption": caption,
             "image_url": image_url  # Correctly constructed URL
         })
-
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
@@ -58,4 +57,4 @@ def serve_image(filename):
     return send_from_directory(app.config['IMAGE_FOLDER'], filename)
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=5000)
