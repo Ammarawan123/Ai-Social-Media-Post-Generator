@@ -56,7 +56,6 @@ def generate():
 def serve_image(filename):
     return send_from_directory(app.config['IMAGE_FOLDER'], filename)
 
-
 @app.route('/favicon.ico')
 def favicon():
     return '', 204  # Empty response to avoid favicon errors
@@ -64,4 +63,3 @@ def favicon():
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 5000))  # Use dynamic port from Railway
     app.run(host="0.0.0.0", port=port)
-
